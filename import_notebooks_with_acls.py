@@ -95,6 +95,7 @@ client = WorkspaceClient()
 dir_paths = sorted({d["path"] for d in directories})
 dir_paths.sort(key=lambda p: (p.count("/"), p))
 for path in dir_paths:
+    print(f"Creating directory: {path}")
     try:
         client.workspace.mkdirs(path)
     except Exception as e:
@@ -103,6 +104,7 @@ for path in dir_paths:
 
 for nb in notebooks:
     path = nb["path"]
+    print(f"Importing notebook: {path}")
     # Ensure this notebook's parent directory exists (defensive: import API requires it)
     parent = path.rsplit("/", 1)[0]
     if parent:
@@ -148,6 +150,7 @@ else:
         )
 
     def set_acl(object_type: str, path: str, acl: list, owner: dict = None):
+        print(f"Applying ACLs ({object_type}): {path}")
         try:
             status = client.workspace.get_status(path=path)
             oid = getattr(status, "object_id", None)

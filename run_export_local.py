@@ -127,6 +127,7 @@ def run_export(
     for kind, path, object_id, language in list_notebooks_and_dirs_recursive(client, starting_path):
         try:
             if kind == "notebook":
+                print(f"Exporting notebook: {path}")
                 export_resp = client.workspace.export(path=path, format=ExportFormat.SOURCE)
                 content_b64 = getattr(export_resp, "content", None) or ""
                 if content_b64:
@@ -139,6 +140,7 @@ def run_export(
                 owner = _get_owner(perms.access_control_list or [])
                 notebooks_manifest.append({"path": path, "language": language or "PYTHON", "acl": acl, "owner": owner})
             else:
+                print(f"Exporting directory (ACLs): {path}")
                 perms = client.workspace.get_permissions("directories", str(object_id))
                 acl = _get_direct_acl(perms.access_control_list or [])
                 owner = _get_owner(perms.access_control_list or [])
