@@ -94,25 +94,30 @@ def _get_direct_acl(access_control_list):
 
 
 def _get_owner(access_control_list):
-    """Return owner as a single principal dict (user_name, group_name, or service_principal_name) for the first direct CAN_MANAGE principal, else None."""
+    """Return owner as a single principal dict: first direct CAN_MANAGE, else first any CAN_MANAGE."""
     if not access_control_list:
         return None
+    fallback = None  # first principal with CAN_MANAGE (even if inherited)
     for entry in access_control_list:
         if not entry.all_permissions:
             continue
         for p in entry.all_permissions:
-            if getattr(p, "inherited", True) is False and getattr(p, "permission_level", None) == WorkspaceObjectPermissionLevel.CAN_MANAGE:
-                out = {}
-                if entry.user_name:
-                    out["user_name"] = entry.user_name
-                if entry.group_name:
-                    out["group_name"] = entry.group_name
-                if entry.service_principal_name:
-                    out["service_principal_name"] = entry.service_principal_name
-                if out:
-                    return out
-                break
-    return None
+            if getattr(p, "permission_level", None) != WorkspaceObjectPermissionLevel.CAN_MANAGE:
+                continue
+            out = {}
+            if entry.user_name:
+                out["user_name"] = entry.user_name
+            if entry.group_name:
+                out["group_name"] = entry.group_name
+            if entry.service_principal_name:
+                out["service_principal_name"] = entry.service_principal_name
+            if not out:
+                continue
+            if getattr(p, "inherited", True) is False:
+                return out  # prefer direct CAN_MANAGE
+            if fallback is None:
+                fallback = out
+    return fallback
 
 
 def list_notebooks_and_dirs_recursive(client: WorkspaceClient, path: str):
