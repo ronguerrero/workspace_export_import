@@ -42,6 +42,8 @@ if not export_path_obj.is_dir():
 
 # Find directories whose name starts with name_prefix (e.g. Shared_Proj_20250303_120000), pick latest by name (timestamp)
 matching = [d for d in export_path_obj.iterdir() if d.is_dir() and d.name.startswith(name_prefix)]
+if notebook_path_to_import.strip("/") in ["Users"]:
+    matching = [d for d in matching if "@" not in d.name]
 if not matching:
     raise FileNotFoundError(f"No export directory found under {export_path} matching '{name_prefix}*'. Run the export notebook first.")
 
